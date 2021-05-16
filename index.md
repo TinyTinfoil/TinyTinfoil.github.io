@@ -1,11 +1,11 @@
-# <p align="center"> TinyTinfoil </p>
+# <p style="text-align:center;"> TinyTinfoil </p>
 
 ### Hello
 <p align="center">
   I go by TinyTinfoil on GitHub
 </p>
 <p align="center">
-You can find more info about me in my GitHub profile: [:octocat:](https://github.com/TinyTinfoil)
+You can find more info about me in my <a href="https://github.com/TinyTinfoil">GitHub profile</a>
 </p>
 
 ### My Projects
