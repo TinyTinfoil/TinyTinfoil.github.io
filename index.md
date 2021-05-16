@@ -1,4 +1,4 @@
-# <p style="text-align:center;"> TinyTinfoil </p>
+<h1 style="text-align:center;"> TinyTinfoil </h1>
 
 ### Hello
 <p align="center">
