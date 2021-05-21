@@ -17,4 +17,4 @@ But besides that, I've done:
 * [Deeplink.js](https://github.com/TinyTinfoil/deeplink) – A work in progress JavaScript microframework for reactivity
 
 ### Contact
-I don't list my email publicly for privacy and spam reasons, but if you need to contact me, make an issue on my [Github Profile](https://github.com/TinyTinfoil/TinyTinfoil)
+I don't list my email publicly for privacy and spam reasons, but if you need to contact me, make a pull request on my [Github Profile](https://github.com/TinyTinfoil/TinyTinfoil)
