@@ -4,6 +4,7 @@
 
 layout: home
 list_title: Projects
+title: "Home"
 ---
 ## Hello 👋
 <img style="margin:auto;display:block;" src="https://avatars.githubusercontent.com/u/55459863?v=4" alt="My profile picture">
@@ -14,4 +15,5 @@ list_title: Projects
 You can find more info about me in my <a href="https://github.com/TinyTinfoil">GitHub profile</a>
 </p>
 
-{% include_relative about.md %}
+### About Me
+{% include_relative _about.md %}
