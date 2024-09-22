@@ -7,6 +7,7 @@ list_title: Projects
 title: "Home"
 ---
 ## Hello 👋
+<img src="/assets/venkadesh_headshot.jpg" height="128px">
 <img src="https://avatars.githubusercontent.com/u/55459863?v=4" alt="My profile picture">
 
 <p align="center">
