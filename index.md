@@ -14,4 +14,4 @@ title: "Home"
   I go by TinyTinfoil on GitHub
 </p>
 
-You can find more info about me in my [GitHub profile](https://github.com/TinyTinfoil) and [about page](about.md)
+You can find more info about me in my [GitHub profile](https://github.com/TinyTinfoil) and [about page](about)

@@ -35,7 +35,11 @@ plugins:
   - jekyll-feed
   - jekyll-optional-front-matter
 
+show_excerpts: true
 
+header_pages:
+  - about.md
+  - catagories.md
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to

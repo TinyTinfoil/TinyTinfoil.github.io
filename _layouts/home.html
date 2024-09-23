@@ -1,7 +1,14 @@
 ---
 layout: default
 ---
-
+<style>
+  li {
+    transition: ease-in-out, 1s;
+  }
+  li:hover {
+    scale: 1.01;
+  }
+</style>
 <div class="home">
   {%- if page.title -%}
     <h1 class="page-heading">{{ page.title }}</h1>
@@ -33,7 +40,13 @@ layout: default
         </h3>
         
         {%- if site.show_excerpts -%}
+          {%- if post.image -%}
+          <div style="width:50%">
           {{ post.excerpt }}
+          </div>
+          {%- else -%}
+          {{ post.excerpt }}
+          {%- endif -%}
         {%- endif -%}
       </li>
       {%- endfor -%}
@@ -41,12 +54,5 @@ layout: default
 
     <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | relative_url }}">via RSS</a></p>
   {%- endif -%}
-
-  <ul>
-    {% for item in (0..site.tags.size) %}{% unless forloop.last %}
-      {% capture this_word %}{{ tags_list[item] | strip_newlines }}{% endcapture %}
-      <li><a href="#{{ this_word}}" class="tag"><span class="tag-name">{{ this_word }}</span> <span class="count">{{ site.tags[this_word].size }}</span></a></li>
-    {% endunless %}{% endfor %}
-  </ul>
   
 </div>
