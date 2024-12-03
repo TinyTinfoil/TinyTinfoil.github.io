@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Gesture recognition on a Wearable Armband
+title: Gesture recognition on a wearable armband
 date:   2023-10-31 15:40:22 -0400
 tag: software signals robotics ML
 ---
