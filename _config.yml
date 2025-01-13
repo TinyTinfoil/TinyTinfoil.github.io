@@ -28,7 +28,7 @@ linkedin_username: tinytinfoil
 mastodon:
   - username: tinytinfoil
     instance: mastodon.social
-
+google_analytics: "G-NWJ3GCVDEG"
 # Build settings
 theme: minima
 plugins:
