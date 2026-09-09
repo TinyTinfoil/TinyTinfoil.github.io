@@ -127,7 +127,7 @@ We’ve seen most of these before, except for the third one. With a Google searc
 
 The input is only accepted for 121 clock cycles, but this is just enough to fit an 11x11 grid. Originally I had missed this as my test bench signals were slightly misaligned, but I ended up catching the issue in time.
 
-With two and only two stars in each row, column, and region, there are 11 regions. However, there are 88 flip flops aside from the output generator. That’s not enough to store each cell value individually, so it’s more likely that these store fault conditions that our solution can’t make. One way to get at the logic is to work backwards by cutting the logic at the flip flops and working backwards from the success output. This creates a subgraph we can solve to figure out what the flip flops must be for success to turn high, which luckily enough is quite small.
+With two and only two stars in each row, column, and group, there are 11 groups. However, there are 88 flip flops aside from the output generator. That’s not enough to store each cell value individually, so it’s more likely that these store fault conditions that our solution can’t make. One way to get at the logic is to work backwards by cutting the logic at the flip flops and working backwards from the success output. This creates a subgraph we can solve to figure out what the flip flops must be for success to turn high, which luckily enough is quite small.
 ![pic](/assets/Pasted image 20260904175238.png)
 
 This looks quite scary when graphed with the full logic gate blocks, but it is actually fairly easy to work out by hand, since the bulk of the design is a ladder of and gates that feed forward.
@@ -136,7 +136,7 @@ This looks quite scary when graphed with the full logic gate blocks, but it is a
 There are around 56 flip flops that need to be in a certain state to trigger success. Separating the input stage from the output stage, we get a porcupine netlist.
 ![pic](/assets/Pasted image 20260904211529.png)
 
-There are some structures here that are definitely identifiable as adders or a shift register. But there’s a huge mass of nodes that seem like a mess of logic. Now, it’s possible in SymbiYosys to solve nodes backwards as you would in formal verification, but that seemed more like work and less like a fun puzzle.
+There are some structures here that are definitely identifiable as adders or a shift register. But there’s a huge mass of nodes that seem like a mess of logic. I spent some time looking at it but couldn’t reduce it to sensible logic, likely because of the aggressive optimization I did in Yosys. Now, it’s possible in SymbiYosys to solve nodes backwards as you would in formal verification, but that seemed more like work and less like a fun puzzle.
 
 In my mind, a more interesting puzzle is brute forcing the combination. The search space for a 11x11 board is less than or equal to 31,197,434 according to [this](https://www.reddit.com/r/askmath/comments/i28xjc/comment/g7vednq/?force-legacy-sct=1) forum post, and I was getting a bit rusty in C. Using a C implementation and converted Verilog design, I got a successful match after a bit of waiting.
 
@@ -164,3 +164,67 @@ In my mind, a more interesting puzzle is brute forcing the combination. The sear
  . * . * . . . . . . .
  ```
 `(* TWO STARS *)`
+
+**Addendum**
+
+I had a chance to look at some of the approaches by other people, and pretty much all of them use a formal logic solver or manually trace through the gates. The closest yet I’ve found of someone that attempted a brute force solution said that it was impossible and moved on to using a formal solver, so I thought that I should detail why it isn’t as impossible as it seems (if you know that it’s a game of Two Not Touch).
+
+The prior knowledge that you’ll need for this is that the input window is 121 clock cycles long, and that the input is a game of Two Not Touch. Granted, knowing that the input is a game of Two Not Touch is a feat in of itself, and would require examining the output generator or getting lucky with an input, like the following:
+```
+**.........
+......*.*..
+.......*.*.
+..**.......
+*...*......
+.....*.*...
+.....*..*..
+.**........
+.........**
+....*.....*
+...*..*....
+```
+
+If we treat the array as a bit array showing if a star is at that position or not, we can generate star arrays quite efficiently.
+
+First, we start by generating rows. Each 11 bit row can only be 1 of 45 unique combinations, since each star has to be spaced out by at least a bit. This can be generated through the following code snippet:
+
+```
+uint16_t sequence;
+uint16_t sequence_list[45];
+int seq_i = 0;
+for (int i = 0; i < 11; i++) {
+	for (int j = i + 2; j < 11; j++) {
+		sequence = (1 << i) | (1 << j);
+		sequence_list[seq_i++] = sequence;
+	}
+}
+```
+
+Then, to assemble them into arrays, we need to know what other sequences are compatible with them (adding them won’t violate the adjacent or diagonal rules). Since we stored each row as a bit array, we can check if combinations are invalid efficiently through checking the bitwise AND and the bitwise AND with a left bit and right bit shift (ex. `sequence_list[i] & (sequence_list[j] | sequence_list[j] << 1 | sequence_list[j] >> 1)`).
+
+After doing that, we can assemble each array by:
+1. Choosing one of the 45 sequences to start with
+2. Choosing one of the valid sequences that could continue off of it
+3. Checking if that sequence would place more than two stars on a column
+4. Choosing another valid sequence after that (step 2) until we get to 11 rows
+
+This could be implemented in a short recursive function that returns early if there isn’t a valid row. 
+
+For efficiently counting the stars in each column, we can keep two 11 bit counters that specify if a column has more than one star and if a column has two stars. If adding a row would cause a column to have more than two stars (which we can check through a bitwise AND with the two star column count and the row), it’s invalid. After adding a row, the star column counts can be updated by bitwise ORing the row with the prior one star column count and bitwise ORing the prior two star column count with the row masked by the prior one star column count, ex:
+
+```
+new_cols_with_1 = (cols_with_1 | sequence_list[s]);
+new_cols_with_2 = cols_with_2 | (cols_with_1 & sequence_list[s]);
+```
+
+There are a couple more optimizations you could do (such as checking if there are no columns that would need two stars by the 9th row or checking that no row sequence is used more than twice), but this should result in all 31,197,434 star arrangements generated in a couple of seconds.
+
+Storing the valid arrangements by encoding them as their indexes in the unique row sequences, we get around a 250 MB file.
+
+Now to test with the Verilog design. Unlike what I did, you could use a simulator with checkpointing (which is supported by commercial simulators like QuestaSim) and rewind at the row level when the board is incorrect, or even pass it through Verilator to increase simulation speed with a C/C++ implementation. I chose to do neither and just stuck with iverilog.
+
+iverilog unfortunately doesn’t support checkpointing. So we’ll have to simulate each arrangement in full. There are some things that help, such as being able to feed in multiple arrangements after properly resetting the chip and having a success line that we can check, which reduce the setup and teardown compute time for each simulation. iverilog is also single threaded, so we can run multiple threads to check multiple arrangements in parallel. The way that we’ve stored all the arrangements is also fairly memory efficient and allows us to easily reconstruct it in the testbench itself.
+
+Through batching the arrangement checks across 12 separate simulations running in parallel and letting them run overnight, I got the solution after around 8 hours of sim. 
+
+It’s not as efficient as using a solver, but it doesn’t use any tools that are more fancy than a C compiler, a Verilog simulator, and some computer time. And as a plus, it allows you to get your daily 8 hours of sleep (you didn’t forget that, right?). 
